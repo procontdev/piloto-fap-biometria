@@ -28,7 +28,21 @@ public class AuthService : IAuthService
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive);
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (user == null)
+            return null;
+
+        bool passwordValid;
+        try
+        {
+            passwordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Invalid password hash format for user {Username}", user.Username);
+            return null;
+        }
+
+        if (!passwordValid)
             return null;
 
         if (user.Role == null || string.IsNullOrWhiteSpace(user.Role.Name))

@@ -122,6 +122,19 @@ using (var scope = app.Services.CreateScope())
         logger.LogWarning("User operador1 had invalid RoleId. Repaired to Operador");
     }
 
+    if (operador != null)
+    {
+        try
+        {
+            _ = BCrypt.Net.BCrypt.Verify("Operador123", operador.PasswordHash);
+        }
+        catch (Exception ex)
+        {
+            operador.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Operador123");
+            logger.LogWarning(ex, "User operador1 had invalid PasswordHash. Hash reset to seed default password");
+        }
+    }
+
     var supervisor = db.Users.FirstOrDefault(u => u.Username == "supervisor1");
     if (supervisor == null)
     {
@@ -140,6 +153,19 @@ using (var scope = app.Services.CreateScope())
     {
         supervisor.RoleId = supervisorRole.Id;
         logger.LogWarning("User supervisor1 had invalid RoleId. Repaired to Supervisor");
+    }
+
+    if (supervisor != null)
+    {
+        try
+        {
+            _ = BCrypt.Net.BCrypt.Verify("Supervisor123", supervisor.PasswordHash);
+        }
+        catch (Exception ex)
+        {
+            supervisor.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Supervisor123");
+            logger.LogWarning(ex, "User supervisor1 had invalid PasswordHash. Hash reset to seed default password");
+        }
     }
 
     db.SaveChanges();
