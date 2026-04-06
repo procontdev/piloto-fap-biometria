@@ -12,10 +12,12 @@ namespace FapPiloto.Api.Controllers;
 public class RegistrationsController : ControllerBase
 {
     private readonly IRegistrationService _registrationService;
+    private readonly IDniLookupService _dniService;
 
-    public RegistrationsController(IRegistrationService registrationService)
+    public RegistrationsController(IRegistrationService registrationService, IDniLookupService dniService)
     {
         _registrationService = registrationService;
+        _dniService = dniService;
     }
 
     [HttpPost]
@@ -159,6 +161,20 @@ public class RegistrationsController : ControllerBase
     {
         var exists = await _registrationService.ExistsByDniAsync(dni);
         return Ok(new { exists });
+    }
+
+    [HttpGet("dni/{dni}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> LookupDni(string dni)
+    {
+        if (string.IsNullOrEmpty(dni) || dni.Length != 8 || !dni.All(char.IsDigit))
+            return BadRequest(new ApiErrorResponse("DNI debe tener 8 dígitos numéricos"));
+
+        var result = await _dniService.LookupAsync(dni);
+        if (result == null)
+            return NotFound(new ApiErrorResponse("DNI no encontrado en el sistema"));
+
+        return Ok(result);
     }
 
     [HttpPost("upload-photo")]
