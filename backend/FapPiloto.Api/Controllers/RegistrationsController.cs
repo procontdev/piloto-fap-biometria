@@ -201,7 +201,7 @@ public class RegistrationsController : ControllerBase
             await file.CopyToAsync(stream);
         }
 
-        var photoUrl = $"/uploads/photos/{uniqueFileName}";
+        var photoUrl = $"{Request.Scheme}://{Request.Host}/uploads/photos/{uniqueFileName}";
         return Ok(new { url = photoUrl });
     }
 

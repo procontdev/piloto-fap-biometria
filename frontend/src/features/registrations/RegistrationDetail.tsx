@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { registrationApi, pdfApi } from '../../api/services';
 import { useAuth } from '../auth/AuthContext';
 import type { RegistrationResponse } from '../../types';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 export default function RegistrationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -121,7 +122,7 @@ export default function RegistrationDetail() {
             <div className="relative inline-block mx-auto mb-6">
               <div className="w-40 h-40 rounded-2xl overflow-hidden bg-slate-100 border-2 border-slate-200 shadow-inner flex items-center justify-center">
                 {data.photoPath ? (
-                  <img src={data.photoPath} alt="Foto del inscrito" className="w-full h-full object-cover" />
+                  <img src={resolveMediaUrl(data.photoPath)} alt="Foto del inscrito" className="w-full h-full object-cover" />
                 ) : (
                   <UserIcon className="w-20 h-20 text-slate-300" />
                 )}

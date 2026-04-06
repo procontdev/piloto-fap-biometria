@@ -8,6 +8,7 @@ import { dniApi, registrationApi } from '../../api/services';
 import { useAuth } from '../auth/AuthContext';
 import PhotoCapture from './components/PhotoCapture';
 import FingerprintScanner from './components/FingerprintScanner';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 export default function RegistrationForm({ 
   isEditing = false, 
@@ -302,13 +303,13 @@ export default function RegistrationForm({
             <PhotoCapture 
               label="Frontal"
               onPhotoCaptured={(url) => setPhotoDataUrl(url)} 
-              initialPhotoUrl={watch('photoPath')} 
+              initialPhotoUrl={resolveMediaUrl(watch('photoPath'))} 
             />
           </div>
           <div className="flex flex-col items-center p-4 border rounded-xl bg-slate-50/50">
             <h3 className="text-xs font-bold text-slate-500 uppercase mb-4 tracking-wider">Fotografía Perfil</h3>
             {watch('profilePhotoPath') ? (
-              <img src={watch('profilePhotoPath')!} className="w-full max-w-[200px] h-auto rounded-lg shadow-md border-2 border-white" alt="Perfil" />
+              <img src={resolveMediaUrl(watch('profilePhotoPath'))} className="w-full max-w-[200px] h-auto rounded-lg shadow-md border-2 border-white" alt="Perfil" />
             ) : (
               <div className="w-full max-w-[200px] aspect-[3/4] bg-slate-200 rounded-lg flex items-center justify-center text-slate-400">Sin foto perfil</div>
             )}
@@ -337,7 +338,7 @@ export default function RegistrationForm({
             <h3 className="text-xs font-bold text-slate-500 uppercase mb-4 tracking-wider">Firma Digital</h3>
             {watch('signaturePath') ? (
               <div className="bg-white p-2 border rounded-lg w-full h-[120px] flex items-center justify-center">
-                <img src={watch('signaturePath')!} className="max-h-full" alt="Firma" />
+                <img src={resolveMediaUrl(watch('signaturePath'))} className="max-h-full" alt="Firma" />
               </div>
             ) : (
               <div className="w-full h-[120px] bg-slate-200 rounded-lg flex items-center justify-center text-slate-400">Sin firma registrada</div>
