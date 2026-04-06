@@ -11,10 +11,12 @@ namespace FapPiloto.Api.Services.Implementations;
 public class PdfService : IPdfService
 {
     private readonly AppDbContext _db;
+    private readonly string _webRootPath;
 
     public PdfService(AppDbContext db)
     {
         _db = db;
+        _webRootPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"));
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
@@ -74,8 +76,7 @@ public class PdfService : IPdfService
                         {
                             if (!string.IsNullOrEmpty(reg.PhotoPath))
                             {
-                                var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", reg.PhotoPath.TrimStart('/'));
-                                if (File.Exists(absolutePath))
+                                if (TryResolveLocalMediaPath(reg.PhotoPath, out var absolutePath) && File.Exists(absolutePath))
                                 {
                                     imgCol.Item().Width(115).Height(145).Image(absolutePath);
                                 }
@@ -160,5 +161,32 @@ public class PdfService : IPdfService
             text.Span($"{label}: ").Bold();
             text.Span(value);
         });
+    }
+
+    private bool TryResolveLocalMediaPath(string? photoPath, out string localPath)
+    {
+        localPath = string.Empty;
+        if (string.IsNullOrWhiteSpace(photoPath))
+            return false;
+
+        var candidate = photoPath.Trim();
+
+        if (Uri.TryCreate(candidate, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+        {
+            candidate = uri.AbsolutePath;
+        }
+
+        candidate = candidate.Replace('\\', '/').TrimStart('/');
+        if (string.IsNullOrWhiteSpace(candidate))
+            return false;
+
+        var resolved = Path.GetFullPath(Path.Combine(_webRootPath, candidate));
+
+        if (!resolved.StartsWith(_webRootPath, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        localPath = resolved;
+        return true;
     }
 }
