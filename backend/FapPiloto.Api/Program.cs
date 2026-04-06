@@ -83,4 +83,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+app.MapGet("/", () => "FAP Piloto Biometría API is running... 🚀");
+
 app.Run();
