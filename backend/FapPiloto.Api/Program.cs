@@ -73,7 +73,76 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("StartupDataRepair");
+
     db.Database.EnsureCreated();
+
+    // Ensure critical auth seed data exists in persistent databases.
+    var operadorRole = db.Roles.FirstOrDefault(r => r.Name == "Operador");
+    if (operadorRole == null)
+    {
+        operadorRole = new FapPiloto.Api.Entities.Role
+        {
+            Name = "Operador",
+            Description = "Registro y consulta de inscripciones"
+        };
+        db.Roles.Add(operadorRole);
+    }
+
+    var supervisorRole = db.Roles.FirstOrDefault(r => r.Name == "Supervisor");
+    if (supervisorRole == null)
+    {
+        supervisorRole = new FapPiloto.Api.Entities.Role
+        {
+            Name = "Supervisor",
+            Description = "Dashboard, auditoría y administración"
+        };
+        db.Roles.Add(supervisorRole);
+    }
+
+    db.SaveChanges();
+
+    var operador = db.Users.FirstOrDefault(u => u.Username == "operador1");
+    if (operador == null)
+    {
+        db.Users.Add(new FapPiloto.Api.Entities.User
+        {
+            Username = "operador1",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Operador123"),
+            FullName = "Juan Perez Garcia",
+            RoleId = operadorRole.Id,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        });
+        logger.LogInformation("Default user operador1 recreated");
+    }
+    else if (!db.Roles.Any(r => r.Id == operador.RoleId))
+    {
+        operador.RoleId = operadorRole.Id;
+        logger.LogWarning("User operador1 had invalid RoleId. Repaired to Operador");
+    }
+
+    var supervisor = db.Users.FirstOrDefault(u => u.Username == "supervisor1");
+    if (supervisor == null)
+    {
+        db.Users.Add(new FapPiloto.Api.Entities.User
+        {
+            Username = "supervisor1",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Supervisor123"),
+            FullName = "Maria Lopez Torres",
+            RoleId = supervisorRole.Id,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        });
+        logger.LogInformation("Default user supervisor1 recreated");
+    }
+    else if (!db.Roles.Any(r => r.Id == supervisor.RoleId))
+    {
+        supervisor.RoleId = supervisorRole.Id;
+        logger.LogWarning("User supervisor1 had invalid RoleId. Repaired to Supervisor");
+    }
+
+    db.SaveChanges();
 }
 
 // === Middleware pipeline ===

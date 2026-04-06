@@ -13,11 +13,13 @@ public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(AppDbContext db, IConfiguration config)
+    public AuthService(AppDbContext db, IConfiguration config, ILogger<AuthService> logger)
     {
         _db = db;
         _config = config;
+        _logger = logger;
     }
 
     public async Task<LoginResponse?> LoginAsync(LoginRequest request)
@@ -28,6 +30,12 @@ public class AuthService : IAuthService
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return null;
+
+        if (user.Role == null || string.IsNullOrWhiteSpace(user.Role.Name))
+        {
+            _logger.LogWarning("User {Username} has invalid Role relation. RoleId={RoleId}", user.Username, user.RoleId);
+            return null;
+        }
 
         var expiresAt = DateTime.UtcNow.AddHours(8);
         var token = GenerateJwt(user, expiresAt);
