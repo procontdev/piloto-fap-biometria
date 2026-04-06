@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
 using FapPiloto.Api.Data;
+using FapPiloto.Api.Security;
 using FapPiloto.Api.Services.Implementations;
 using FapPiloto.Api.Services.Interfaces;
 
@@ -18,7 +19,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Default") ?? "Data Source=fap_piloto_v2.db"));
 
 // === Authentication ===
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "FapPilotoSecretKey2025!@#$%^&*()_+";
+using var bootstrapLoggerFactory = LoggerFactory.Create(logging => logging.AddConsole());
+var bootstrapLogger = bootstrapLoggerFactory.CreateLogger("JwtConfiguration");
+var jwtConfig = JwtConfigurationResolver.Resolve(builder.Configuration, bootstrapLogger);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -28,9 +31,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "FapPiloto",
-            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "FapPilotoApp",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidIssuer = jwtConfig.Issuer,
+            ValidAudience = jwtConfig.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.Key)),
             NameClaimType = ClaimTypes.Name,
             RoleClaimType = ClaimTypes.Role
         };

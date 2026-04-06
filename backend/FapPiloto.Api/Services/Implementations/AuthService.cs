@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using FapPiloto.Api.Data;
 using FapPiloto.Api.DTOs;
+using FapPiloto.Api.Security;
 using FapPiloto.Api.Services.Interfaces;
 
 namespace FapPiloto.Api.Services.Implementations;
@@ -59,8 +60,9 @@ public class AuthService : IAuthService
 
     private string GenerateJwt(Entities.User user, DateTime expiresAt)
     {
+        var jwtConfig = JwtConfigurationResolver.Resolve(_config, _logger);
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Key"] ?? "FapPilotoSecretKey2025!@#$%^&*()_+"));
+            Encoding.UTF8.GetBytes(jwtConfig.Key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
@@ -72,8 +74,8 @@ public class AuthService : IAuthService
         };
 
         var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"] ?? "FapPiloto",
-            audience: _config["Jwt:Audience"] ?? "FapPilotoApp",
+            issuer: jwtConfig.Issuer,
+            audience: jwtConfig.Audience,
             claims: claims,
             expires: expiresAt,
             signingCredentials: creds

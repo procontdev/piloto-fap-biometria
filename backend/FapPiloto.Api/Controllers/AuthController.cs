@@ -9,10 +9,12 @@ namespace FapPiloto.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, ILogger<AuthController> logger)
     {
         _authService = authService;
+        _logger = logger;
     }
 
     [HttpPost("login")]
@@ -21,10 +23,18 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
             return BadRequest(new ApiErrorResponse("Usuario y contraseña son obligatorios"));
 
-        var result = await _authService.LoginAsync(request);
-        if (result == null)
-            return Unauthorized(new ApiErrorResponse("Credenciales inválidas"));
+        try
+        {
+            var result = await _authService.LoginAsync(request);
+            if (result == null)
+                return Unauthorized(new ApiErrorResponse("Credenciales inválidas"));
 
-        return Ok(result);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled authentication error for user {Username}", request.Username);
+            return StatusCode(500, new ApiErrorResponse("Error interno de autenticación"));
+        }
     }
 }
