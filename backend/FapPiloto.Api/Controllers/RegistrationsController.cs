@@ -103,6 +103,22 @@ public class RegistrationsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpDelete]
+    [Authorize(Roles = "Supervisor")]
+    public async Task<IActionResult> DeleteAll()
+    {
+        var userId = GetUserId();
+        var deletedCount = await _registrationService.DeleteAllAsync(userId);
+
+        return Ok(new
+        {
+            message = deletedCount == 0
+                ? "No hay registros para eliminar"
+                : $"Se eliminaron {deletedCount} registros permanentemente",
+            deletedCount
+        });
+    }
+
     [HttpPost("update/{id:int}")]
     [Authorize] // Segurida restablecida; la validación manual interna garantiza compatibilidad manual en Windows
     public async Task<IActionResult> Update(int id, [FromBody] UpdateRegistrationRequest request)

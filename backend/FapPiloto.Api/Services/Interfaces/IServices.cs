@@ -18,6 +18,7 @@ public interface IRegistrationService
     Task<RegistrationResponse?> GetByIdAsync(int id);
     Task<PagedResponse<RegistrationListItemResponse>> GetAllAsync(RegistrationFilterRequest filter);
     Task<RegistrationResponse?> UpdateAsync(int id, UpdateRegistrationRequest request, int userId);
+    Task<int> DeleteAllAsync(int userId);
     Task<bool> ExistsByDniAsync(string dni);
     Task<bool> SendNotificationAsync(int id, string method);
 }

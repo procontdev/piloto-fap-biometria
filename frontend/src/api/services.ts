@@ -45,6 +45,9 @@ export const registrationApi = {
   
   notify: (id: number, method: 'email' | 'whatsapp') =>
     api.post<{ message: string }>(`/registrations/${id}/notify?method=${method}`).then(r => r.data),
+
+  deleteAll: () =>
+    api.delete<{ message: string; deletedCount: number }>('/registrations').then(r => r.data),
 };
 
 // Dashboard

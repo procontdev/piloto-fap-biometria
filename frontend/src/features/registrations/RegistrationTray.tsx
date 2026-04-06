@@ -10,11 +10,14 @@ import {
   ArrowDownTrayIcon,
   DevicePhoneMobileIcon,
   EnvelopeIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
+  TrashIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { registrationApi, exportApi } from '../../api/services';
 import type { RegistrationListItem, RegistrationFilter, PagedResponse } from '../../types';
+import { useAuth } from '../auth/AuthContext';
 
 export default function RegistrationTray() {
   const [data, setData] = useState<PagedResponse<RegistrationListItem> | null>(null);
@@ -29,6 +32,10 @@ export default function RegistrationTray() {
   });
   const [isExporting, setIsExporting] = useState(false);
   const [notifyingRows, setNotifyingRows] = useState<Record<string, boolean>>({});
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const { user } = useAuth();
 
   const loadData = async () => {
     try {
@@ -55,6 +62,34 @@ export default function RegistrationTray() {
     }
   };
 
+  const requiredConfirmation = 'ELIMINAR TODOS';
+  const canDeleteAll = user?.role === 'Supervisor' && !!data && data.totalCount > 0;
+
+  const handleDeleteAll = async () => {
+    if (deleteConfirmText.trim().toUpperCase() !== requiredConfirmation) {
+      toast.error('Debe escribir ELIMINAR TODOS para confirmar');
+      return;
+    }
+
+    try {
+      setIsDeletingAll(true);
+      const res = await registrationApi.deleteAll();
+      toast.success(res.message);
+      setFilters(prev => ({ ...prev, page: 1 }));
+      setIsDeleteModalOpen(false);
+      setDeleteConfirmText('');
+      await loadData();
+    } catch (err: any) {
+      if (err.response?.status === 403) {
+        toast.error('Solo Supervisor puede eliminar todos los registros');
+      } else {
+        toast.error(err.response?.data?.message || 'Error al eliminar registros');
+      }
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
+
   useEffect(() => {
     loadData();
   }, [filters.page, filters.registrationStatus, filters.registrationMode]);
@@ -75,6 +110,18 @@ export default function RegistrationTray() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
+          {user?.role === 'Supervisor' && (
+            <button
+              onClick={() => setIsDeleteModalOpen(true)}
+              disabled={!canDeleteAll}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title={canDeleteAll ? 'Eliminar todos los registros (permanente)' : 'No hay registros para eliminar'}
+            >
+              <TrashIcon className="w-5 h-5" />
+              <span>Eliminar Todos</span>
+            </button>
+          )}
+
           <button 
             onClick={async () => {
               try {
@@ -102,6 +149,65 @@ export default function RegistrationTray() {
           </Link>
         </div>
       </div>
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-[1px] flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-full bg-red-100 text-red-600">
+                <ExclamationTriangleIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Confirmar eliminación masiva</h3>
+                <p className="text-sm text-slate-600 mt-1">
+                  Esta acción eliminará permanentemente todos los registros de la bandeja y no se puede deshacer.
+                </p>
+                <p className="text-sm text-slate-700 font-semibold mt-2">
+                  Registros actuales: {data?.totalCount ?? 0}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                Escriba ELIMINAR TODOS para confirmar
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                className="input-field"
+                placeholder="ELIMINAR TODOS"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isDeletingAll) return;
+                  setIsDeleteModalOpen(false);
+                  setDeleteConfirmText('');
+                }}
+                className="btn-secondary"
+                disabled={isDeletingAll}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAll}
+                disabled={isDeletingAll || deleteConfirmText.trim().toUpperCase() !== requiredConfirmation}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <TrashIcon className="w-4 h-4" />
+                <span>{isDeletingAll ? 'Eliminando...' : 'Eliminar todos'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         {/* Filtros */}

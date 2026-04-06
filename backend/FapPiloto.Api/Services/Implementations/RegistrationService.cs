@@ -263,6 +263,24 @@ public class RegistrationService : IRegistrationService
         }
     }
 
+    public async Task<int> DeleteAllAsync(int userId)
+    {
+        var total = await _db.Registrations.CountAsync();
+        if (total == 0)
+            return 0;
+
+        await _db.Registrations.ExecuteDeleteAsync();
+
+        await _audit.LogAsync(
+            "ApplicantRegistration",
+            0,
+            "DeleteAll",
+            userId,
+            $"Eliminación física masiva de registros. Total eliminado: {total}");
+
+        return total;
+    }
+
     public async Task<bool> ExistsByDniAsync(string dni)
     {
         return await _db.Registrations.AnyAsync(r => r.Dni == dni);
