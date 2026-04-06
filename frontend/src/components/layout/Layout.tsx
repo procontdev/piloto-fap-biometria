@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
+import { normalizeRole } from '../../utils/roles';
 import {
   UserPlusIcon,
   ClipboardDocumentListIcon,
@@ -43,7 +44,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
         <nav className="flex-1 px-3 space-y-2">
           {navItems
-            .filter(item => item.roles.includes(user.role))
+            .filter(item => item.roles.some(role => normalizeRole(role) === normalizeRole(user.role)))
             .map((item) => (
               <NavLink
                 key={item.name}

@@ -10,6 +10,7 @@ import EditRegistration from './features/registrations/EditRegistration';
 import RegistrationTray from './features/registrations/RegistrationTray';
 import RegistrationDetail from './features/registrations/RegistrationDetail';
 import Dashboard from './features/dashboard/Dashboard';
+import { isSupervisorRole } from './utils/roles';
 
 // Protected Route Guard
 function ProtectedRoute({ children, allowedRoles, noLayout = false }: { children: React.ReactNode, allowedRoles?: string[], noLayout?: boolean }) {
@@ -22,7 +23,7 @@ function ProtectedRoute({ children, allowedRoles, noLayout = false }: { children
 
   if (!isAuthorized) {
     // Redirect to default page based on role if unauthorized access is attempted
-    return <Navigate to={currentRole.toLowerCase() === 'supervisor' ? '/' : '/registrations'} replace />;
+    return <Navigate to={isSupervisorRole(currentRole) ? '/' : '/registrations'} replace />;
   }
   
   return noLayout ? <>{children}</> : <Layout>{children}</Layout>;
@@ -34,7 +35,7 @@ function AppRoutes() {
   
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to={user.role === 'Supervisor' ? '/' : '/registrations'} /> : <Login />} />
+      <Route path="/login" element={user ? <Navigate to={isSupervisorRole(user.role) ? '/' : '/registrations'} /> : <Login />} />
       
       {/* Kiosk Route (Protected but No Layout wrapper) */}
       <Route path="/kiosko" element={

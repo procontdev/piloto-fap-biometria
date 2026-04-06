@@ -18,6 +18,7 @@ import toast from 'react-hot-toast';
 import { registrationApi, exportApi } from '../../api/services';
 import type { RegistrationListItem, RegistrationFilter, PagedResponse } from '../../types';
 import { useAuth } from '../auth/AuthContext';
+import { isSupervisorRole } from '../../utils/roles';
 
 export default function RegistrationTray() {
   const [data, setData] = useState<PagedResponse<RegistrationListItem> | null>(null);
@@ -63,7 +64,8 @@ export default function RegistrationTray() {
   };
 
   const requiredConfirmation = 'ELIMINAR TODOS';
-  const canDeleteAll = user?.role === 'Supervisor' && !!data && data.totalCount > 0;
+  const isSupervisor = isSupervisorRole(user?.role);
+  const canDeleteAll = isSupervisor && !!data && data.totalCount > 0;
 
   const handleDeleteAll = async () => {
     if (deleteConfirmText.trim().toUpperCase() !== requiredConfirmation) {
@@ -110,7 +112,7 @@ export default function RegistrationTray() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          {user?.role === 'Supervisor' && (
+          {isSupervisor && (
             <button
               onClick={() => setIsDeleteModalOpen(true)}
               disabled={!canDeleteAll}

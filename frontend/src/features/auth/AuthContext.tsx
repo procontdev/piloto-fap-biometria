@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { AuthUser } from '../../types';
+import { isOperadorRole, isSupervisorRole } from '../../utils/roles';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -49,8 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       login,
       logout,
-      isOperador: user?.role === 'Operador',
-      isSupervisor: user?.role === 'Supervisor',
+      isOperador: isOperadorRole(user?.role),
+      isSupervisor: isSupervisorRole(user?.role),
     }}>
       {children}
     </AuthContext.Provider>
