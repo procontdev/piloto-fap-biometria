@@ -1,0 +1,207 @@
+{
+  "name": "FAP - Envío de Constancias",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fap-notify",
+        "options": {}
+      },
+      "id": "e2e9c17f-9b6b-4e1b-8f31-8f3b207a9e01",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ],
+      "webhookId": "fap-notify-webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "={{ $json.method }}",
+                  "type": "string"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "",
+                    "rightValue": "email",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Email"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "={{ $json.method }}",
+                  "type": "string"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "",
+                    "rightValue": "whatsapp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "WhatsApp"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3c7b203c-703a-442c-aef6-95079a405901",
+      "name": "Switch Method",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "setFromBase64",
+        "sourceKey": "pdfBase64",
+        "destinationKey": "constancia",
+        "options": {
+          "fileName": "constancia.pdf",
+          "mimeType": "application/pdf"
+        }
+      },
+      "id": "df192837-4bde-4e32-8412-9238471b0201",
+      "name": "Base64 to PDF",
+      "type": "n8n-nodes-base.editBinaryData",
+      "typeVersion": 1,
+      "position": [
+        850,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@fap.mil.pe",
+        "toEmail": "={{ $node[\"Webhook\"].json.email }}",
+        "subject": "Constancia de Preregistro Militar - FAP",
+        "html": "<!DOCTYPE html><html lang=\"es\"><head><style>body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; } .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e1e8ed; overflow: hidden; } .header { background-color: #003366; padding: 25px; text-align: center; color: white; } .content { padding: 30px; line-height: 1.6; color: #334155; } .footer { background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 11px; color: #64748b; }</style></head><body><div class=\"container\"><div class=\"header\"><h1>Constancia de Preregistro FAP</h1></div><div class=\"content\"><h2>Estimado(a) {{ $json.fullName }},</h2><p>Tu Preregistro Militar Voluntario ha sido realizado exitosamente.</p><div style=\"background:#f8fafc; padding:15px; border-radius:8px;\"><strong>DNI:</strong> {{ $json.dni }}<br><strong>Trámite:</strong> Inscripción Militar</div><p>Adjuntamos tu constancia oficial en formato PDF.</p></div><div class=\"footer\">FUERZA AÉREA DEL PERÚ<br>www.fap.mil.pe</div></div></body></html>",
+        "binaryPropertyName": "constancia"
+      },
+      "id": "928374fb-12c3-445a-9283-471b02030405",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        1050,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v17.0/YOUR_WHATSAPP_ID/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "messaging_product",
+              "value": "whatsapp"
+            },
+            {
+              "name": "to",
+              "value": "={{ $node[\"Webhook\"].json.phone }}"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            },
+            {
+              "name": "text",
+              "value": "={\r\n  \"body\": \"Hola \" + $node[\"Webhook\"].json.fullName + \", tu constancia de preregistro FAP con DNI \" + $node[\"Webhook\"].json.dni + \" ya está lista.\"\r\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bc123456-7890-4abc-def1-234567890abc",
+      "name": "WhatsApp API Placeholder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        850,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch Method",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Method": {
+      "main": [
+        [
+          {
+            "node": "Base64 to PDF",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "WhatsApp API Placeholder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base64 to PDF": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {}
+}

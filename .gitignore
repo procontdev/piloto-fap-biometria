@@ -1,0 +1,42 @@
+# === General ===
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# === Frontend (React/Vite) ===
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.env
+frontend/*.local
+
+
+# === Backend (.NET) ===
+backend/**/bin/
+backend/**/obj/
+backend/**/Properties/launchSettings.json
+backend/**/appsettings.Development.json
+backend/**/*.user
+
+
+# === Database (SQLite) ===
+*.db
+*.db-shm
+*.db-wal
+backend/FapPiloto.Api/*.db*
+
+
+# === OS Files ===
+Thumbs.db
+desktop.ini

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Constancia de Preregistro FAP</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e1e8ed; }
+    .header { background-color: #003366; padding: 30px; text-align: center; color: #ffffff; }
+    .header h1 { margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; }
+    .header .fap-badge { font-size: 10px; font-weight: bold; background: #C5A059; color: #003366; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+    .content { padding: 40px 30px; line-height: 1.6; color: #334155; }
+    .greeting { font-size: 18px; font-weight: bold; color: #0f172a; margin-bottom: 15px; }
+    .data-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 25px 0; }
+    .data-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .data-label { color: #64748b; font-size: 12px; width: 80px; }
+    .data-value { font-weight: 600; color: #1e293b; font-size: 14px; }
+    .footer { background-color: #f1f5f9; padding: 25px; text-align: center; font-size: 12px; color: #64748b; }
+    .footer a { color: #003366; text-decoration: none; font-weight: 600; }
+    .divider { height: 1px; background-color: #e2e8f0; margin: 20px 0; }
+    .highlight { color: #003366; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="fap-badge">Fuerza Aérea del Perú</div>
+      <h1>Constancia de Preregistro</h1>
+    </div>
+    
+    <div class="content">
+      <div class="greeting">Estimado(a) {{ $json.fullName }},</div>
+      <p>Es un gusto saludarte. Te informamos que tu <strong>Preregistro Militar Voluntario</strong> se ha realizado exitosamente a través de nuestra plataforma digital.</p>
+      
+      <p>A continuación, detallamos la información de tu registro:</p>
+      
+      <div class="data-box">
+        <div class="data-row">
+          <span class="data-label">DNI:</span>
+          <span class="data-value">{{ $json.dni }}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">FECHA:</span>
+          <span class="data-value">{{ new Date().toLocaleDateString('es-PE') }}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">TRÁMITE:</span>
+          <span class="data-value highlight">Inscripción Militar</span>
+        </div>
+      </div>
+
+      <p>Adjunto a este correo encontrarás tu <span class="highlight">Constancia de Preregistro en formato PDF</span>. Te recomendamos guardarla y tenerla a la mano para cualquier consulta institucional futura.</p>
+      
+      <div class="divider"></div>
+      
+      <p style="font-size: 14px; color: #475569;">Este es un proceso de validación inicial. Recuerda que este documento no constituye un contrato activo, sino la validación de tus datos para el sistema de captación.</p>
+    </div>
+    
+    <div class="footer">
+      <strong>FUERZA AÉREA DEL PERÚ</strong><br>
+      Dirección de Movilización Nacional<br>
+      <a href="https://www.fap.mil.pe">www.fap.mil.pe</a><br>
+      <em>"Arriba Siempre Arriba"</em>
+    </div>
+  </div>
+</body>
+</html>
