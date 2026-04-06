@@ -1,7 +1,16 @@
 import axios from 'axios';
 
+const isProduction = import.meta.env.PROD;
+const configuredApiUrl = import.meta.env.VITE_API_URL as string | undefined;
+
+if (isProduction && (!configuredApiUrl || configuredApiUrl.trim().length === 0)) {
+  throw new Error('Missing VITE_API_URL in production build. Configure it in EasyPanel build args.');
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: (configuredApiUrl && configuredApiUrl.trim().length > 0)
+    ? configuredApiUrl.trim().replace(/\/$/, '')
+    : '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
